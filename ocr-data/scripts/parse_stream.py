@@ -19,7 +19,7 @@ import functools
 import asyncio
 import websockets
 from datetime import datetime
-
+import os
 print = functools.partial(print, flush=True)
 
 class VideoStreamWidget(object):
@@ -53,7 +53,9 @@ async def send_to_socket(json_dump):
         await websocket.send(json_dump)
 
 def submit_event(json_dump):
-    file = './events/' + datetime.now().replace(":", _).replace(" ","_") + ".txt"
+    if not os.path.exists("./events"):
+        os.makedirs("./events")
+    file = './events/' + datetime.now().strftime("%Y-%m-%d_%H_%M_%S.txt")
     with open(file, 'w+') as file:
         file.write(json_dump)
     asyncio.get_event_loop().run_until_complete(send_to_socket(json_dump))
