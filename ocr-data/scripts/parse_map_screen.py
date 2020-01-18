@@ -173,20 +173,7 @@ def parse_map_screen(img):
         print(unsure_abil)
     return results
 
-def main():
-    start_time = time.time()
-    # print(is_map_screen(io.imread('C://Users/bijmb/Documents/splatoon related/ocr/mapview.png')))
-    # print(is_map_screen(io.imread('C://Users/bijmb/Documents/splatoon related/ocr/mapview2pro.png')))
-    # print(is_map_screen(io.imread('C://Users/bijmb/Documents/splatoon related/ocr/mapview3.png')))
-    # print(is_map_screen(io.imread('C://Users/bijmb/Documents/splatoon related/ocr/mapview4.png')))
-    #print(is_map_screen(io.imread('C://Users/bijmb/Documents/splatoon related/ocr/mapview5.png')))
-
-    results, scores = get_player_data_from_map_view(io.imread('C://Users/bijmb/Documents/splatoon related/ocr/mapview3.png'))
-    for i in range(len(results)):
-      print(results[i])
-      print(scores[i])
-
-    print("--- %s seconds ---" % (time.time() - start_time))
-
-if __name__ == '__main__':
-    main()
+def map_data_to_json(data):
+    jsondata = {'eventSource': 'CV', 'timestamp': time.time(), 'eventType': 'map', 'eventData': {'players':[{'weapon': data[i][0],\
+    'headgear': data[i][1][0], 'clothing': data[i][1][1], 'shoes': data[i][1][2]} for i in range(8)]}}
+    return json.dumps(jsondata, indent=4)

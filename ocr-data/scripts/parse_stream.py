@@ -11,11 +11,14 @@ import random
 import os
 from queue import Queue
 from parse_results_screen import is_results_screen, parse_results_screen, get_winner
-from parse_map_screen import is_map_screen, parse_map_screen
+from parse_map_screen import is_map_screen, parse_map_screen, map_data_to_json
 from map_results_associate import associate_players, assoc_results_to_json
 import threading
 from web_socket_server import resolve_associated_conflicts
 import functools
+import asyncio
+import websockets
+from datetime import datetime
 
 print = functools.partial(print, flush=True)
 
@@ -50,10 +53,10 @@ async def send_to_socket(json_dump):
         await websocket.send(json_dump)
 
 def submit_event(json_dump):
-    with open('./test_results.txt', 'a+') as file:
+    file = './events/' + datetime.now().replace(":", _).replace(" ","_") + ".txt"
+    with open(file, 'w+') as file:
         file.write(json_dump)
-        file.write(r"\n")
-    # asyncio.get_event_loop().run_until_complete(send_to_socket(json_dump))
+    asyncio.get_event_loop().run_until_complete(send_to_socket(json_dump))
 
 def get_next_map_or_results_img_from_vid(vidcap):
     success = vidcap.grab()
@@ -139,7 +142,9 @@ def parse_results_from_stream(src):
         if mode == 'scan_all':
             if is_map_screen(img):
                 print('Found map screen')
-                data['map'] = img
+                print('Parsing map screen...')
+                data['map'] = parse_map_screen(img)
+                submit_event(map_data_to_json(data['map']))
                 mode = 'scan_results'
             elif is_results_screen(img):
                 print('Found results screen without map screen')
@@ -155,8 +160,7 @@ def parse_results_from_stream(src):
             print('Parsing results screen...')
             res_data = parse_results_screen(pil_img)
             if 'map' in data:
-                print('Parsing map screen...')
-                map_data = parse_map_screen(data['map'])
+                map_data = data['map']
                 print('Associating map and results...')
                 del data['map']
                 assoc_res = associate_players(map_data, res_data)
@@ -171,8 +175,8 @@ def parse_results_from_stream(src):
 
     stream.finish()
 
-def show_webcam(mirror=False):
-    cam = cv2.VideoCapture(0)
+def show_webcam(src, mirror=False):
+    cam = cv2.VideoCapture(src)
     cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280);
     cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720);
     while True:
@@ -185,18 +189,8 @@ def show_webcam(mirror=False):
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    show_webcam()
-    # parse_results_from_stream(1)
-    # get_parsed_results_from_vid('G://mapresults.mp4')
-    start_time = time.time()
-    # get_device_id('t')
-    # players = ['Prod', 'Astral', 'Keen', 'Power', 'The One', 'Arashi', 'Tetsu', 'vibin']
-    # tmpdir = 'G://mapresults.mp4'
-    # for res in get_parsed_results_from_vid(tmpdir):
-    #     print('game')
-    #     for line in res:
-    #         print(line)
-    #results = parse_results_screen(Image.open(tmpdir))
-    #print(get_winner(Image.open(tmpdir)))
-    #print(is_results_screen(Image.open(tmpdir)))
-    print("--- %s seconds ---" % (time.time() - start_time))
+    # CHANGE ARGUMENT TO MATCH VIRTUAL CAMERA NUMBER
+    virtual_cam_id = 1
+    parse_results_from_stream(virtual_cam_id)
+    # For debugging, show the current webcam
+    # show_webcam(virtual_cam_id)
