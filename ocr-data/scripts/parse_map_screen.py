@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 from functools import partial
 import time
 import random
+from datetime import datetime
 
 class Spritesheet:
     def __init__(self, sheet, num_sprites, num_cols, sprite_width, sprite_names):
@@ -174,6 +175,6 @@ def parse_map_screen(img):
     return results
 
 def map_data_to_json(data):
-    jsondata = {'eventSource': 'CV', 'timestamp': time.time(), 'eventType': 'map', 'eventData': {'players':[{'weapon': data[i][0],\
+    jsondata = {'eventSource': 'CV', 'timestamp': datetime.now(), 'eventType': 'map', 'eventData': {'players':[{'weapon': data[i][0],\
     'headgear': data[i][1][0], 'clothing': data[i][1][1], 'shoes': data[i][1][2]} for i in range(8)]}}
     return json.dumps(jsondata, indent=4)

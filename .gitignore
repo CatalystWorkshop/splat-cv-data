@@ -1,2 +1,3 @@
-
+/ocr-data/scripts/events/*
 *.pyc
+ocr-data/scripts/single_result.txt
