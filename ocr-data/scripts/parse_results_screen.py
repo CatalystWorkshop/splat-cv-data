@@ -17,9 +17,12 @@ import time
 from torch.utils.data import Dataset, DataLoader
 import random
 import cv2
+import functools
 from queue import Queue
 from multiprocessing import Pool, cpu_count
 from collections import namedtuple
+print = functools.partial(print, flush=True)
+
 
 UnassocMatchResults = namedtuple('UnassocMatchResults', 'winner data')
 Result = namedtuple('Result', 'weapon ka_count special_count special')
@@ -264,20 +267,20 @@ def parse_results_screen(img):
     unsure_spec = [idx + 1 for idx, score in enumerate(spec_scores) if score < spec_thresh]
     unsure_weap = [idx + 1 for idx, score in enumerate(weap_scores) if score < weap_thresh]
     
-    # if len(unsure_k_a_count) > 0:
-    #     print("Unsure of K+A of Players (1 indexed)")
-    #     print(unsure_k_a_count)
-    #     print([scores[0] for idx,scores in enumerate(stat_scores) if idx + 1 in unsure_k_a_count])
-    # if len(unsure_spec_count) > 0:
-    #     print("Unsure of Special Count of Players (1 indexed)")
-    #     print(unsure_spec_count)
-    #     print([scores[1] for idx,scores in enumerate(stat_scores) if idx + 1 in unsure_spec_count])
-    # if len(unsure_spec) > 0:
-    #     print("Unsure of Specials + Weapons of Players (1 indexed)")
-    #     print(unsure_spec)
-    # if len(unsure_weap) > 0:
-    #     print("Unsure of Weapons of Players (1 indexed)")
-    #     print(unsure_weap)
+    if len(unsure_k_a_count) > 0:
+        print("Unsure of K+A of Players (1 indexed)")
+        print(unsure_k_a_count)
+        print([scores[0] for idx,scores in enumerate(stat_scores) if idx + 1 in unsure_k_a_count])
+    if len(unsure_spec_count) > 0:
+        print("Unsure of Special Count of Players (1 indexed)")
+        print(unsure_spec_count)
+        print([scores[1] for idx,scores in enumerate(stat_scores) if idx + 1 in unsure_spec_count])
+    if len(unsure_spec) > 0:
+        print("Unsure of Specials + Weapons of Players (1 indexed)")
+        print(unsure_spec)
+    if len(unsure_weap) > 0:
+        print("Unsure of Weapons of Players (1 indexed)")
+        print(unsure_weap)
 
     return UnassocMatchResults(get_winner(img), [Result(x[2], x[0][0], x[0][1], x[1]) for x in zip(stats, specs, weaps)])
 

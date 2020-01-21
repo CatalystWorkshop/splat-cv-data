@@ -48,16 +48,19 @@ class VideoStreamWidget(object):
 
 
 async def send_to_socket(json_dump):
-    uri = "ws://localhost:8765"
+    uri = "ws://192.168.1.122:8765"
     async with websockets.connect(uri) as websocket:
         await websocket.send(json_dump)
 
-def submit_event(json_dump):
+def log_event(str):
     if not os.path.exists("./events"):
         os.makedirs("./events")
     file = './events/' + datetime.now().strftime("%Y-%m-%d_%H_%M_%S.txt")
     with open(file, 'w+') as file:
         file.write(json_dump)
+
+def submit_event(json_dump):
+    log_event(json_dump)
     asyncio.get_event_loop().run_until_complete(send_to_socket(json_dump))
 
 def get_next_map_or_results_img_from_vid(vidcap):
@@ -146,6 +149,7 @@ def parse_results_from_stream(src):
                 print('Found map screen')
                 print('Parsing map screen...')
                 data['map'] = parse_map_screen(img)
+                print('Submitting map data to socket')
                 submit_event(map_data_to_json(data['map']))
                 mode = 'scan_results'
             elif is_results_screen(img):
@@ -161,12 +165,13 @@ def parse_results_from_stream(src):
             pil_img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
             print('Parsing results screen...')
             res_data = parse_results_screen(pil_img)
+            log_event(str(res_data))
             if 'map' in data:
                 map_data = data['map']
                 print('Associating map and results...')
                 del data['map']
                 assoc_res = associate_players(map_data, res_data)
-                print('Submitting data to socket')
+                print('Submitting results data to socket')
                 submit_event(assoc_results_to_json(assoc_res, pil_img.crop((640, 0, 1280, 720))))
             else:
                 print('')
@@ -192,6 +197,10 @@ def show_webcam(src, mirror=False):
 
 if __name__ == '__main__':
     # CHANGE ARGUMENT TO MATCH VIRTUAL CAMERA NUMBER
+    # start_time = time.time()
+    # with open("single_result.txt", 'r') as f:
+    #     submit_event(f.read())
+    # print("--- %s seconds ---" % (time.time() - start_time))
     virtual_cam_id = 1
     parse_results_from_stream(virtual_cam_id)
     # For debugging, show the current webcam

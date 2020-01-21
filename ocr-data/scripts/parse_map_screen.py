@@ -1,6 +1,7 @@
 import os
 import math
 #import cv2
+import json
 import sys
 import numpy as np
 from skimage import data, img_as_float, io
@@ -175,6 +176,6 @@ def parse_map_screen(img):
     return results
 
 def map_data_to_json(data):
-    jsondata = {'eventSource': 'CV', 'timestamp': datetime.now(), 'eventType': 'map', 'eventData': {'players':[{'weapon': data[i][0],\
+    jsondata = {'eventSource': 'CV', 'timestamp': time.time(), 'eventType': 'map', 'eventData': {'players':[{'weapon': data[i][0],\
     'headgear': data[i][1][0], 'clothing': data[i][1][1], 'shoes': data[i][1][2]} for i in range(8)]}}
     return json.dumps(jsondata, indent=4)
