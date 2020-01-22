@@ -34,16 +34,21 @@ def associate_players(map_data, match_results):
 	map_weaps, abils = zip(*map_data)
 	results_weaps, k_a_cnt, spec_cnt, specials = zip(*match_results.data)
 
-	if str(sorted(results_weaps[0:4])) == str(sorted(results_weaps[4:8])):
+	if str(sorted(map_weaps[0:4])) == str(sorted(map_weaps[4:8])):
 		winner = match_results.winner
 	else:
-		winner = 'alpha' if str(sorted(map_weaps[0:4])) == str(sorted(results_weaps[0:4])) else 'bravo'
+		winner = 'alpha' if str(sorted(map_weaps[0:4])) == str(sorted(results_weaps[0:4])) \
+			&& str(sorted(map_weaps[4:8])) == str(sorted(results_weaps[4:8])) else \
+		'bravo' if str(sorted(map_weaps[0:4])) == str(sorted(results_weaps[4:8])) \
+			&& str(sorted(map_weaps[4:8])) == str(sorted(results_weaps[0:4])) else match_results.winner
 
 	player_weapons, player_abils = zip(*map_data)
 	alpha_tgts = match_results.data[0:4] if winner == 'alpha' else match_results.data[4:8]
 	bravo_tgts = match_results.data[0:4] if winner == 'bravo' else match_results.data[4:8]
 	player_results = [None] * 8
 	map_specs = [None] * 8
+	alphaError = False
+	bravoError = False
 	for player in range(4):
 		# Alpha team
 		possibleResults = [PossibleStats(res.ka_count, res.special_count) for res in alpha_tgts if res.weapon == player_weapons[player]]
@@ -52,7 +57,8 @@ def associate_players(map_data, match_results):
 			player_results[player] = possibleResults
 			map_specs[player] = next(res.special for res in alpha_tgts if res.weapon == player_weapons[player])
 		else:
-			print("Error occurred")
+			alphaError = True
+			print("Unable to determine correct weapon for player " + str(player+1))
 
 		# Bravo team
 		possibleResults = [PossibleStats(res.ka_count, res.special_count) for res in bravo_tgts if res.weapon == player_weapons[player + 4]]
@@ -61,8 +67,17 @@ def associate_players(map_data, match_results):
 			player_results[player + 4] = possibleResults
 			map_specs[player + 4] = next(res.special for res in bravo_tgts if res.weapon == player_weapons[player + 4])
 		else:
-			print("Error occurred")
-
+			bravoError = True
+			print("Unable to determine correct weapon for player " + str(player+5))
+	allAlphaRes = [PossibleStats(res.ka_count, res.special_count) for res in alpha_tgts]
+	allBravoRes = [PossibleStats(res.ka_count, res.special_count) for res in bravo_tgts]
+	for i in range(4):
+		if alphaError:
+			player_results[i] = allAlphaRes
+			map_specs[i] = "Unknown"
+		if bravoError:
+			player_results[i + 4] = allBravoRes
+			map_specs[i] = "Unknown"
 
 	return PossibleResultsList(match_results.winner, [PossibleResults(res[0], res[1], res[2], res[3]) for res in zip(map_weaps, map_specs, abils, [make_unique(res_list) for res_list in player_results])])
 
