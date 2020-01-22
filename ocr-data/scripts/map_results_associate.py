@@ -38,9 +38,9 @@ def associate_players(map_data, match_results):
 		winner = match_results.winner
 	else:
 		winner = 'alpha' if str(sorted(map_weaps[0:4])) == str(sorted(results_weaps[0:4])) \
-			&& str(sorted(map_weaps[4:8])) == str(sorted(results_weaps[4:8])) else \
+			and str(sorted(map_weaps[4:8])) == str(sorted(results_weaps[4:8])) else \
 		'bravo' if str(sorted(map_weaps[0:4])) == str(sorted(results_weaps[4:8])) \
-			&& str(sorted(map_weaps[4:8])) == str(sorted(results_weaps[0:4])) else match_results.winner
+			and str(sorted(map_weaps[4:8])) == str(sorted(results_weaps[0:4])) else match_results.winner
 
 	player_weapons, player_abils = zip(*map_data)
 	alpha_tgts = match_results.data[0:4] if winner == 'alpha' else match_results.data[4:8]
@@ -77,7 +77,7 @@ def associate_players(map_data, match_results):
 			map_specs[i] = "Unknown"
 		if bravoError:
 			player_results[i + 4] = allBravoRes
-			map_specs[i] = "Unknown"
+			map_specs[i+4] = "Unknown"
 
 	return PossibleResultsList(match_results.winner, [PossibleResults(res[0], res[1], res[2], res[3]) for res in zip(map_weaps, map_specs, abils, [make_unique(res_list) for res_list in player_results])])
 

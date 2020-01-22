@@ -197,11 +197,8 @@ def show_webcam(src, mirror=False):
 
 if __name__ == '__main__':
     # CHANGE ARGUMENT TO MATCH VIRTUAL CAMERA NUMBER
-    # start_time = time.time()
-    # with open("single_result.txt", 'r') as f:
-    #     submit_event(f.read())
-    # print("--- %s seconds ---" % (time.time() - start_time))
     virtual_cam_id = 1
     parse_results_from_stream(virtual_cam_id)
-    # For debugging, show the current webcam
+
+    # For debugging, show the current webcam instead
     # show_webcam(virtual_cam_id)
