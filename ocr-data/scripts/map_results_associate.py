@@ -71,38 +71,3 @@ def assoc_results_to_json(assoc_results, res_img):
 	'headgear': res.abilities[0], 'clothing': res.abilities[1], 'shoes': res.abilities[2], \
 	'possibleResults': [{'ka_count': posRes.ka_count, 'special_count': posRes.special_count} for posRes in res.possibleStats]} for res in assoc_results.data]}}
 	return json.dumps(jsondata, indent=4)
-
-# id = 0
-# def main():
-# 	start_time = time.time()
-# 	map_img = 'C://Users/bijmb/Documents/splatoon related/ocr/mapview2pro.png'
-# 	results_img = 'C://Users/bijmb/Documents/splatoon related/ocr/mapview2proresults.png'
-# 	res_img = Image.open(results_img)
-# 	match_results = parse_results_screen(res_img)
-# 	map_data = parse_map_screen(skimage.io.imread(map_img))
-
-
-# 	associated_results = associate_players(map_data, match_results)
-# 	asyncio.get_event_loop().run_until_complete(send_to_socket(to_json(associated_results, res_img.crop((640, 0, 1280, 720)))))
-# 	map_img = 'C://Users/bijmb/Documents/splatoon related/ocr/mapview3.png'
-# 	results_img = 'C://Users/bijmb/Documents/splatoon related/ocr/mapview3results.png'
-# 	res_img = Image.open(results_img)
-# 	match_results = parse_results_screen(res_img)
-# 	map_data = parse_map_screen(skimage.io.imread(map_img))
-# 	associated_results = associate_players(map_data, match_results)
-
-# 	asyncio.get_event_loop().run_until_complete(send_to_socket(to_json(associated_results, res_img.crop((640, 0, 1280, 720)))))
-
-# 	player_list = ['Snek', 'Ross', 'Nick', '4D', 'Power', 'Astral', 'Prod', 'Keen']
-# 	# for line in associated_results:
-# 	# 	print(line)
-# 	# associate_results_final = resolve_associated_conflicts(player_list, res_img.crop((640, 0, 1280, 720)), associated_results)
-# 	# print(associate_results_final)
-# 	# jsondata = {'players':[{'name': res[0], 'weapon': res[1][0], 'special': res[1][3], 'ka_count': res[1][1], 'special_count': res[1][2], 'headgear': res[2][0], 'clothing': res[2][1], 'shoes': res[2][2]} for res in associate_results_final], 'match_id': id}
-# 	# print(json.dumps(jsondata, indent=4))
-# 	# for res in associate_results_final:
-# 	# 	print(res)
-# 	print("--- %s seconds ---" % (time.time() - start_time))
-
-# if __name__ == '__main__':
-# 	main()

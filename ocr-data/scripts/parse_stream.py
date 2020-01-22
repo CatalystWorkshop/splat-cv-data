@@ -52,12 +52,12 @@ async def send_to_socket(json_dump):
     async with websockets.connect(uri) as websocket:
         await websocket.send(json_dump)
 
-def log_event(str):
+def log_event(out):
     if not os.path.exists("./events"):
         os.makedirs("./events")
     file = './events/' + datetime.now().strftime("%Y-%m-%d_%H_%M_%S.txt")
     with open(file, 'w+') as file:
-        file.write(json_dump)
+        file.write(out)
 
 def submit_event(json_dump):
     log_event(json_dump)

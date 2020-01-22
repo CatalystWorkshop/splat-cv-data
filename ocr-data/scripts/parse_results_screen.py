@@ -107,12 +107,12 @@ def get_data_from_results_view(i, top_left_x_alpha, top_left_x_bravo, top_left_y
     return find_most_similar(crop_img, spritesheet, permit_list=permit_list)
 
 def detect_weapons_from_results_view(img, specs):
-    weapon_image = '../sprites-models/weapon_compact_12col_128px.png'
+    weapon_image = '../sprites-models/weapon_compact_12col_256px.png'
     with open('../sprites-models/weapons_list.csv', 'r') as file:
         lines = file.read().split('\n')
         weapons_list = [x.split(',')[0] for x in lines]
         weapon_spec_list = [x.split(',')[1] for x in lines]
-    weap_spritesheet = Spritesheet(sheet=rgb2gray(rgba2rgb(io.imread(weapon_image))), num_sprites=139, num_cols=12, sprite_width=128, sprite_names=weapons_list)
+    weap_spritesheet = Spritesheet(sheet=rgb2gray(rgba2rgb(io.imread(weapon_image))), num_sprites=139, num_cols=12, sprite_width=256, sprite_names=weapons_list)
     top_left_x_alpha = 831
     top_left_x_bravo = 835
     top_left_y_alpha = 128
@@ -312,25 +312,3 @@ def is_results_screen(img):
     if max_col > max_ok_color or min_col < min_ok_color:
         return False   
     return True
-
-start_time = time.time()
-
-def main():
-    tmpdir = 'C://Users/bijmb/Documents/splatoon related/ocr/testresults.png'
-    # print(is_results_screen(io.imread(tmpdir)))
-    start_time = time.time()
-    for res in parse_results_screen(Image.open(tmpdir)):
-        # a, b = res
-        # print(a)
-        for line in res:
-            print(line)
-    #results = parse_results_screen(Image.open(tmpdir))
-    #print(get_winner(Image.open(tmpdir)))
-    #print(is_results_screen(Image.open(tmpdir)))
-    print("--- %s seconds ---" % (time.time() - start_time))
-    #for res in results:
-    #    print(res)
-
-
-if __name__ == '__main__':
-    main()

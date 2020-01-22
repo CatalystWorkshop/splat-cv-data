@@ -1,6 +1,5 @@
 import os
 import math
-#import cv2
 import json
 import sys
 import numpy as np
