@@ -14,7 +14,7 @@ from parse_results_screen import is_results_screen, parse_results_screen, get_wi
 from parse_map_screen import is_map_screen, parse_map_screen, map_data_to_json
 from map_results_associate import associate_players, assoc_results_to_json
 import threading
-from web_socket_server import resolve_associated_conflicts
+# from web_socket_server import resolve_associated_conflicts
 import functools
 import asyncio
 import websockets
@@ -124,7 +124,7 @@ def get_parsed_results_from_vid(file):
             res_data = parse_results_screen(res_img)
             assoc_res = associate_players(map_data, res_data)
             print(assoc_results_to_json(assoc_res, res_img))
-            results = resolve_associated_conflicts(player_list, res_img, assoc_res)
+            # results = resolve_associated_conflicts(player_list, res_img, assoc_res)
         elif imgtype == 'results':
             results = parse_results_screen(image)
         match_results.append(results)
