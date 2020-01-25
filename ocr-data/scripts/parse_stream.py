@@ -174,8 +174,7 @@ def parse_results_from_stream(src):
                 print('Submitting results data to socket')
                 submit_event(assoc_results_to_json(assoc_res, pil_img.crop((640, 0, 1280, 720))))
             else:
-                print('')
-                print(res_data)
+                print('Logged results without map')
             time.sleep(30)
             mode = 'scan_all'
         time.sleep(0.25)

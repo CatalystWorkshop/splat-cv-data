@@ -260,8 +260,8 @@ def parse_results_screen(img):
     weaps, weap_scores = detect_weapons_from_results_view(np.array(img), specs=specs)
     k_a_count_thresh = 0.80
     spec_count_thresh = 0.80
-    spec_thresh = 0.22
-    weap_thresh = 0.22
+    spec_thresh = 0.20
+    weap_thresh = 0.20
     unsure_k_a_count = [idx + 1 for idx, score in enumerate(stat_scores) if score[0] < k_a_count_thresh]
     unsure_spec_count = [idx + 1 for idx, score in enumerate(stat_scores) if score[1] < spec_count_thresh]
     unsure_spec = [idx + 1 for idx, score in enumerate(spec_scores) if score < spec_thresh]
@@ -290,7 +290,7 @@ def is_results_screen(img):
     width = 170
     height = 25
 
-    min_ok_color = 30
+    min_ok_color = 20
     max_ok_color = 40
 
     arr = img[base_y:base_y+height,base_x:base_x+width]
