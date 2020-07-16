@@ -10,7 +10,7 @@ import time
 import random
 import os
 from queue import Queue
-from parse_results_screen import is_results_screen, parse_results_screen, get_winner
+from parse_results_screen import is_results_screen, parse_results_screen, get_winner, results_data_to_json
 from parse_map_screen import is_map_screen, parse_map_screen, map_data_to_json
 from map_results_associate import associate_players, assoc_results_to_json
 import threading
@@ -48,9 +48,19 @@ class VideoStreamWidget(object):
 
 
 async def send_to_socket(json_dump):
-    uri = "ws://192.168.1.122:8765"
+    uri = "ws://192.168.100.22:8765"
     async with websockets.connect(uri) as websocket:
         await websocket.send(json_dump)
+
+def save_image(img, np=False):
+    if not os.path.exists("./events"):
+        os.makedirs("./events")
+    file = './events/' + datetime.now().strftime("%Y-%m-%d_%H_%M_%S.png")
+    if np:
+        pil_img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    else:
+        pil_img = img
+    pil_img.save(file)
 
 def log_event(out):
     if not os.path.exists("./events"):
@@ -150,6 +160,7 @@ def parse_results_from_stream(src):
                 print('Parsing map screen...')
                 data['map'] = parse_map_screen(img)
                 print('Submitting map data to socket')
+                save_image(img, np=True)
                 submit_event(map_data_to_json(data['map']))
                 mode = 'scan_results'
             elif is_results_screen(img):
@@ -163,9 +174,9 @@ def parse_results_from_stream(src):
                 mode = 'wait_results'
         elif mode == 'wait_results' and now_ts - wait_start_ts >= 2.5:
             pil_img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+            save_image(pil_img, np=False)
             print('Parsing results screen...')
             res_data = parse_results_screen(pil_img)
-            log_event(str(res_data))
             if 'map' in data:
                 map_data = data['map']
                 print('Associating map and results...')
@@ -174,6 +185,7 @@ def parse_results_from_stream(src):
                 print('Submitting results data to socket')
                 submit_event(assoc_results_to_json(assoc_res, pil_img.crop((640, 0, 1280, 720))))
             else:
+                log_event(results_data_to_json(res_data))
                 print('Logged results without map')
             time.sleep(30)
             mode = 'scan_all'

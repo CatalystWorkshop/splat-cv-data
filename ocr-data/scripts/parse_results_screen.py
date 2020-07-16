@@ -21,6 +21,7 @@ import functools
 from queue import Queue
 from multiprocessing import Pool, cpu_count
 from collections import namedtuple
+import json
 print = functools.partial(print, flush=True)
 
 
@@ -49,7 +50,6 @@ class Spritesheet:
 def find_most_similar(in_img, spritesheet, permit_list=None):
     max_score = 0
     max_img = ''
-    max_idx = 0
     for idx in range(spritesheet.num_sprites):
         (sprite_name, sprite) = spritesheet.get_sprite(idx)
         if permit_list and sprite_name not in permit_list:
@@ -312,3 +312,9 @@ def is_results_screen(img):
     if max_col > max_ok_color or min_col < min_ok_color:
         return False   
     return True
+
+
+def results_data_to_json(res):
+    jsondata = {'eventSource': 'CV', 'timestamp': time.time(), 'eventType': 'results', 'winner': res.winner, \
+        'eventData': {'players':[{'weapon': res.data[i].weapon, 'ka_count': res.data[i].ka_count, 'special': res.data[i].special, 'special_count': res.data[i].special_count} for i in range(8)]}}
+    return json.dumps(jsondata, indent=4)

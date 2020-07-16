@@ -82,7 +82,7 @@ def associate_players(map_data, match_results):
 	return PossibleResultsList(match_results.winner, [PossibleResults(res[0], res[1], res[2], res[3]) for res in zip(map_weaps, map_specs, abils, [make_unique(res_list) for res_list in player_results])])
 
 def assoc_results_to_json(assoc_results, res_img):
-	jsondata = {'eventSource': 'CV', 'timestamp': time.time(), 'eventType': 'results', 'eventData': {'resultsImage': encode_image(res_img), 'winner': assoc_results.winner, 'players':[{'weapon': res.weapon, 'special': res.special, \
+	jsondata = {'eventSource': 'CV', 'timestamp': time.time(), 'eventType': 'results', 'eventData': {'resultsImage': "", 'winner': assoc_results.winner, 'players':[{'weapon': res.weapon, 'special': res.special, \
 	'headgear': res.abilities[0], 'clothing': res.abilities[1], 'shoes': res.abilities[2], \
 	'possibleResults': [{'ka_count': posRes.ka_count, 'special_count': posRes.special_count} for posRes in res.possibleStats]} for res in assoc_results.data]}}
 	return json.dumps(jsondata, indent=4)
