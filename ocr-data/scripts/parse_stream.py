@@ -65,7 +65,7 @@ def save_image(img, now, np=False):
 def log_event(out, now):
     if not os.path.exists("./events"):
         os.makedirs("./events")
-    file = './events/' + now.strftime("%Y-%m-%d_%H_%M_%S.txt")
+    file = './events/' + now.strftime("%Y-%m-%d_%H_%M_%S.json")
     with open(file, 'w+') as file:
         file.write(out)
 
