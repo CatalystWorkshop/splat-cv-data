@@ -52,26 +52,26 @@ async def send_to_socket(json_dump):
     async with websockets.connect(uri) as websocket:
         await websocket.send(json_dump)
 
-def save_image(img, np=False):
+def save_image(img, now, np=False):
     if not os.path.exists("./events"):
         os.makedirs("./events")
-    file = './events/' + datetime.now().strftime("%Y-%m-%d_%H_%M_%S.png")
+    file = './events/' + now.strftime("%Y-%m-%d_%H_%M_%S.png")
     if np:
         pil_img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     else:
         pil_img = img
     pil_img.save(file)
 
-def log_event(out):
+def log_event(out, now):
     if not os.path.exists("./events"):
         os.makedirs("./events")
-    file = './events/' + datetime.now().strftime("%Y-%m-%d_%H_%M_%S.txt")
+    file = './events/' + now.strftime("%Y-%m-%d_%H_%M_%S.txt")
     with open(file, 'w+') as file:
         file.write(out)
 
-def submit_event(json_dump):
-    log_event(json_dump)
-    asyncio.get_event_loop().run_until_complete(send_to_socket(json_dump))
+def submit_event(json_dump, now):
+    log_event(json_dump, now)
+    # asyncio.get_event_loop().run_until_complete(send_to_socket(json_dump))
 
 def get_next_map_or_results_img_from_vid(vidcap):
     success = vidcap.grab()
@@ -154,14 +154,15 @@ def parse_results_from_stream(src):
     while stream.status:
         img = stream.frame
         now_ts = stream.now
+        datetime_now = datetime.now()
         if mode == 'scan_all':
             if is_map_screen(img):
                 print('Found map screen')
                 print('Parsing map screen...')
                 data['map'] = parse_map_screen(img)
                 print('Submitting map data to socket')
-                save_image(img, np=True)
-                submit_event(map_data_to_json(data['map']))
+                save_image(img, datetime_now, np=True)
+                submit_event(map_data_to_json(data['map']), datetime_now)
                 mode = 'scan_results'
             elif is_results_screen(img):
                 print('Found results screen without map screen')
@@ -174,7 +175,7 @@ def parse_results_from_stream(src):
                 mode = 'wait_results'
         elif mode == 'wait_results' and now_ts - wait_start_ts >= 2.5:
             pil_img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-            save_image(pil_img, np=False)
+            save_image(pil_img, datetime_now, np=False)
             print('Parsing results screen...')
             res_data = parse_results_screen(pil_img)
             if 'map' in data:
@@ -183,9 +184,9 @@ def parse_results_from_stream(src):
                 del data['map']
                 assoc_res = associate_players(map_data, res_data)
                 print('Submitting results data to socket')
-                submit_event(assoc_results_to_json(assoc_res, pil_img.crop((640, 0, 1280, 720))))
+                submit_event(assoc_results_to_json(assoc_res, pil_img.crop((640, 0, 1280, 720))), datetime_now)
             else:
-                log_event(results_data_to_json(res_data))
+                log_event(results_data_to_json(res_data), datetime_now)
                 print('Logged results without map')
             time.sleep(30)
             mode = 'scan_all'
