@@ -165,3 +165,4 @@ class ObjectiveTimer:
         self.in_game = False
         self.longest_hold_alpha = 0
         self.longest_hold_bravo = 0
+        self.event_queue = []
