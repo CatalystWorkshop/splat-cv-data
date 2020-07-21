@@ -3,7 +3,7 @@ import threading
 import time
 
 class VideoStreamWidget(object):
-    def __init__(self, src, resolution=720):
+    def __init__(self, src, resolution='720p'):
         self.capture = cv2.VideoCapture(src)
         if resolution == '1080p':
             self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1920);

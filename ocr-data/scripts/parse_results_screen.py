@@ -301,7 +301,10 @@ def is_results_screen_1080p(img):
     return True
 
 
-def results_data_to_json(res, game_mode=None, stage_name=None, ts=time.time()):
+def results_data_to_json(res, game_mode=None, stage_name=None, \
+    longest_hold_alpha=None, longest_hold_bravo=None, \
+        objective_time=[0,0,0,0,0],
+        game_events=[], ts=time.time()):
     if res.winner == 'alpha':
         alpha = [{'weapon': res.data[i].weapon, 'ka_count': res.data[i].ka_count, 'special': res.data[i].special, 'special_count': res.data[i].special_count} for i in range(4)]
         bravo = [{'weapon': res.data[i+4].weapon, 'ka_count': res.data[i+4].ka_count, 'special': res.data[i+4].special, 'special_count': res.data[i+4].special_count} for i in range(4)]
@@ -309,6 +312,10 @@ def results_data_to_json(res, game_mode=None, stage_name=None, ts=time.time()):
         bravo = [{'weapon': res.data[i].weapon, 'ka_count': res.data[i].ka_count, 'special': res.data[i].special, 'special_count': res.data[i].special_count} for i in range(4)]
         alpha = [{'weapon': res.data[i+4].weapon, 'ka_count': res.data[i+4].ka_count, 'special': res.data[i+4].special, 'special_count': res.data[i+4].special_count} for i in range(4)]
     
-    jsondata = {'eventSource': 'CV', 'timestamp': ts, 'eventType': 'results', \
-        'eventData': {'gameMode': game_mode, 'stage': stage_name, 'winner': res.winner, 'alphaTeam': alpha, 'bravoTeam': bravo}}
+    jsondata = {'event_source': 'CV', 'timestamp': ts, 'event_type': 'results', \
+        'event_data': {'game_mode': game_mode, 'stage': stage_name, 'winner': res.winner, \
+            'game_events': game_events, 'objective_time': objective_time, \
+            'alpha_team': {'players': alpha, 'longest_hold_alpha': longest_hold_alpha}, \
+            'bravo_team': {'players': bravo, 'longest_hold_bravo': longest_hold_bravo}
+        }}
     return json.dumps(jsondata, indent=4)

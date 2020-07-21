@@ -90,7 +90,14 @@ def parse_overhead_spectator_stream(src):
             save_image(pil_img, game_end_time, suffix='_results', np=False)
             print('Parsing results screen...')
             res_data = parse_results_screen(pil_img)
-            log_event(results_data_to_json(res_data, curr_game_mode, curr_stage), game_end_time, suffix='_results')
+            log_event(results_data_to_json(res_data, \
+                game_mode=curr_game_mode, \
+                stage_name=curr_stage, \
+                longest_hold_alpha=objective_timer.prev_game_longest_hold_alpha, \
+                longest_hold_bravo=objective_timer.prev_game_longest_hold_bravo, \
+                objective_time=objective_timer.prev_game_objective_time, \
+                game_events=objective_timer.prev_game_event_queue), \
+                    game_end_time, suffix='_results')
             print('Logged results without map')
             results_wait_start_ts = None
             curr_game_mode = None

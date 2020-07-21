@@ -23,33 +23,4 @@ def parse_timer_digits(img):
     (digit2, d2sim) = find_most_similar(digit2_img, digit_sprites)
     (digit3, d3sim) = find_most_similar(digit3_img, digit_sprites)
     joint_sim = d1sim * d2sim * d3sim
-    return f"{digit1}:{digit2}{digit3}" if joint_sim >= 0.55  else None
-
-
-# def snip_digits(src):
-#     total_cnt = 0
-#     cam = cv2.VideoCapture(src)
-#     cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1920);
-#     cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080);
-#     y = 58
-#     x1 = 915
-#     x2 = 956
-#     x3 = 980
-#     width = 24
-#     height = 38
-#     while True:
-#         ret_val, img = cam.read()
-#         # cv2.imshow('my webcam', img)
-#         if cv2.waitKey(1) == 27: 
-#             break  # esc to quit
-#         if total_cnt % 60 == 0:
-#             img_cnt = int(total_cnt / 60)
-#             digit1 = Image.fromarray(cv2.cvtColor(img[y:y+height, x1:x1+width], cv2.COLOR_BGR2RGB))
-#             digit2 = Image.fromarray(cv2.cvtColor(img[y:y+height, x2:x2+width], cv2.COLOR_BGR2RGB))
-#             digit3 = Image.fromarray(cv2.cvtColor(img[y:y+height, x3:x3+width], cv2.COLOR_BGR2RGB))
-#             digit1.save(f"./timer/{img_cnt}_d1.png")
-#             digit2.save(f"./timer/{img_cnt}_d2.png")
-#             digit3.save(f"./timer_test/{img_cnt}_d3.png")
-
-#         total_cnt += 1
-#     cv2.destroyAllWindows()
+    return f"{digit1}:{digit2}{digit3}" if joint_sim >= 0.6 else None

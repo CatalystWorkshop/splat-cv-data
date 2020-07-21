@@ -9,7 +9,7 @@ import datetime
 import cv2
 
 async def send_to_socket(json_dump):
-    uri = "ws://192.168.100.22:8765"
+    uri = "ws://hi:8765"
     async with websockets.connect(uri) as websocket:
         await websocket.send(json_dump)
 

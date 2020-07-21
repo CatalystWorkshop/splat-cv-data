@@ -1,5 +1,6 @@
 import numpy as np
 import functools
+import time
 print = functools.partial(print, flush=True)
 
 class UISpacingConfig:
@@ -70,16 +71,37 @@ def push_obj_state(state_buffer, new_state):
     state_buffer.append(new_state)
     state_buffer.pop(0)
 
+def obj_state_to_string(assumed_state):
+    if assumed_state == 2:
+        return 'alpha++'
+    elif assumed_state == 1:
+        return 'alpha+'
+    elif assumed_state == 0:
+        return 'neutral'
+    elif assumed_state == -1:
+        return 'bravo+'
+    elif assumed_state == -2:
+        return 'bravo++'
+
 class ObjectiveTimer:
     def __init__(self):
         self.objective_time = [0]*5
+        self.current_hold_length = 0
+        self.longest_hold_alpha = 0
+        self.longest_hold_bravo = 0
         self.obj_state_buffer = [NO_OBJ_STATE]*10
         self.last_assumed_state = NO_OBJ_STATE
         self.assumed_state = NO_OBJ_STATE
         self.in_game = False
-        self.game_records = []
         self.was_in_game = False
-        
+        self.game_time = 0
+        self.event_queue = []
+
+        self.prev_game_event_queue = []
+        self.prev_game_objective_time = [0]*5
+        self.prev_game_longest_hold_alpha = 0
+        self.prev_game_longest_hold_bravo = 0
+
     def update(self, img, dt):
         self.was_in_game = self.in_game
         self.last_assumed_state = self.assumed_state
@@ -88,16 +110,37 @@ class ObjectiveTimer:
         self.obj_state_buffer.pop(0)
         if self.is_game_start():
             self.in_game = True
+            self.game_time = 0
+            evnt = {'event_type': 'game_start', \
+                'game_time_seconds': round(self.game_time, 2), \
+                'timestamp': round(time.time(), 2)}
+            self.event_queue.append(evnt)
         if self.in_game:
+            self.game_time += dt
             # If latest frame gives us a NO_OBJ_STATE, find the most recent objective state in the buffer
             self.assumed_state = next((s for s in reversed(self.obj_state_buffer) if s != NO_OBJ_STATE), NO_OBJ_STATE)
-            if self.assumed_state != NO_OBJ_STATE:
+            if self.assumed_state != NO_OBJ_STATE and self.last_assumed_state != NO_OBJ_STATE:
                 self.objective_time[self.assumed_state + 2] += dt
+                self.current_hold_length += dt
+                if self.last_assumed_state != self.assumed_state:
+                    evnt = {'event_type': 'objective_change', \
+                        'game_time_seconds': round(self.game_time, 2)}
+                    evnt['old_objective_state'] = obj_state_to_string(self.last_assumed_state)
+                    evnt['new_objective_state'] = obj_state_to_string(self.assumed_state)
+                    self.event_queue.append(evnt)
+                if np.sign(self.last_assumed_state) != np.sign(self.assumed_state):
+                    if np.sign(self.last_assumed_state) > 0:
+                        self.longest_hold_alpha = max(self.longest_hold_alpha, self.current_hold_length)
+                    elif np.sign(self.last_assumed_state) < 0:
+                        self.longest_hold_bravo = max(self.longest_hold_bravo, self.current_hold_length)
+                    self.current_hold_length = 0
             if self.is_game_end():
-                print("Game has ended!")
-                print(self.objective_time)
-                self.game_records.append(self.objective_time)
+                evnt = {'event_type': 'game_end', \
+                    'game_time_seconds': round(self.game_time, 2), \
+                    'timestamp': round(time.time(), 2)}
+                self.event_queue.append(evnt)
                 self.reset()
+                
     def is_game_start(self):
         return not self.was_in_game and len([s for s in self.obj_state_buffer[-5:] if s == NEUTRAL_OBJ_STATE]) >= 3
 
@@ -108,13 +151,17 @@ class ObjectiveTimer:
         return self.last_assumed_state != NO_OBJ_STATE \
         and self.assumed_state != NO_OBJ_STATE \
                     and np.sign(self.last_assumed_state) != np.sign(self.assumed_state)
-                    
-    def get_game_records(self):
-        return self.game_records
 
     def reset(self):
+        self.prev_game_event_queue = self.event_queue
+        self.prev_game_longest_hold_alpha = round(self.longest_hold_alpha, 2)
+        self.prev_game_longest_hold_bravo = round(self.longest_hold_bravo, 2)
+        self.prev_game_objective_time = [round(x, 2) for x in self.objective_time]
+
         self.objective_time = [0]*5
         self.obj_state_buffer = [NO_OBJ_STATE]*10
         self.last_assumed_state = NO_OBJ_STATE
         self.assumed_state = NO_OBJ_STATE
         self.in_game = False
+        self.longest_hold_alpha = 0
+        self.longest_hold_bravo = 0
