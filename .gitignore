@@ -1,3 +1,7 @@
-/ocr-data/scripts/events/*
+ocr-data/scripts/events/
+ocr-data/events/
+__pycache__/
+ocr-data/scripts/__pycache__/
 *.pyc
 ocr-data/scripts/single_result.txt
+.vscode/*
