@@ -3,66 +3,22 @@ try:
 except ImportError:
     import Image
 import PIL.ImageOps
-from skimage import data, img_as_float, io
-from skimage.metrics import structural_similarity as ssim
-from skimage.transform import resize
+from skimage import io
 from skimage.color import rgba2rgb, rgb2gray
 import numpy as np
 import torch
 from torch import nn
-import torchvision
-from torchvision import transforms, datasets
-import os, os.path
+from torchvision import transforms
 import time
-from torch.utils.data import Dataset, DataLoader
-import random
 import cv2
-import functools
-from queue import Queue
-from multiprocessing import Pool, cpu_count
 from collections import namedtuple
+from scripts.sprite_parsing import Spritesheet, find_most_similar
+from scripts.utils import get_resource_abs_path
 import json
-print = functools.partial(print, flush=True)
 
 
 UnassocMatchResults = namedtuple('UnassocMatchResults', 'winner data')
 Result = namedtuple('Result', 'weapon ka_count special_count special')
-class Spritesheet:
-    def __init__(self, sheet, num_sprites, num_cols, sprite_width, sprite_names):
-        self.sheet = sheet
-        self.num_sprites = num_sprites
-        self.num_cols = num_cols
-        self.sprite_width = sprite_width
-        self.sprite_names = sprite_names
-        self.cached_sprites = {}
-
-    def get_sprite(self, idx):
-        if idx < 0 or idx >= self.num_sprites:
-            print("error, invalid sprite number")
-            return ("", [])
-        if idx not in self.cached_sprites.keys():
-            x = self.sprite_width * (idx % self.num_cols)
-            y = self.sprite_width * int(idx / self.num_cols)
-            self.cached_sprites[idx] = (self.sprite_names[idx], self.sheet[y:y+self.sprite_width, x:x+self.sprite_width])
-        return self.cached_sprites[idx]
-
-# Takes in an RGB image
-def find_most_similar(in_img, spritesheet, permit_list=None):
-    max_score = 0
-    max_img = ''
-    for idx in range(spritesheet.num_sprites):
-        (sprite_name, sprite) = spritesheet.get_sprite(idx)
-        if permit_list and sprite_name not in permit_list:
-            continue
-        ref_img = resize(sprite, (in_img.shape[0], in_img.shape[1]))
-
-        ssim_val = ssim(ref_img, in_img, data_range=in_img.max() - in_img.min())
-
-        if ssim_val > max_score:
-            max_score = ssim_val
-            max_img = sprite_name
-
-    return (max_img, round(max_score, 5))
 
 def has_digit(img):
     bbox = img.getbbox()
@@ -107,12 +63,12 @@ def get_data_from_results_view(i, top_left_x_alpha, top_left_x_bravo, top_left_y
     return find_most_similar(crop_img, spritesheet, permit_list=permit_list)
 
 def detect_weapons_from_results_view(img, specs):
-    weapon_image = '../sprites-models/weapon_compact_12col_256px.png'
-    with open('../sprites-models/weapons_list.csv', 'r') as file:
+    weapon_image = get_resource_abs_path('weapon_compact_12col_256px.png')
+    with open(get_resource_abs_path('weapons_list.csv'), 'r') as file:
         lines = file.read().split('\n')
         weapons_list = [x.split(',')[0] for x in lines]
         weapon_spec_list = [x.split(',')[1] for x in lines]
-    weap_spritesheet = Spritesheet(sheet=rgb2gray(rgba2rgb(io.imread(weapon_image))), num_sprites=139, num_cols=12, sprite_width=256, sprite_names=weapons_list)
+    weap_spritesheet = Spritesheet(sheet=rgb2gray(rgba2rgb(io.imread(weapon_image))), num_sprites=139, num_cols=12, sprite_width=256, sprite_height=256, sprite_names=weapons_list)
     top_left_x_alpha = 831
     top_left_x_bravo = 835
     top_left_y_alpha = 128
@@ -129,10 +85,10 @@ def detect_weapons_from_results_view(img, specs):
     return zip(*weaps)
 
 def detect_specials_from_results_view(img):
-    spec_image = '../sprites-models/specials_horiz_64px_15.png'
-    with open('../sprites-models/specials_list.csv', 'r') as f:
+    spec_image = get_resource_abs_path('specials_horiz_64px_15.png')
+    with open(get_resource_abs_path('specials_list.csv'), 'r') as f:
         spec_list = f.read().split('\n')
-    spec_spritesheet = Spritesheet(sheet=rgb2gray(rgba2rgb(io.imread(spec_image))), num_sprites=15, num_cols=15, sprite_width=64, sprite_names=spec_list)
+    spec_spritesheet = Spritesheet(sheet=rgb2gray(rgba2rgb(io.imread(spec_image))), num_sprites=15, num_cols=15, sprite_width=64, sprite_height=64, sprite_names=spec_list)
     top_left_x_alpha = 1183
     top_left_x_bravo = 1189
     top_left_y_alpha = 115
@@ -159,7 +115,7 @@ def detect_stats_from_results_view(img):
                           nn.ReLU(),
                           nn.Linear(hidden_sizes[1], output_size),
                           nn.LogSoftmax(dim=1))
-    model.load_state_dict(torch.load('../sprites-models/splatfont_digits_model.pt'))
+    model.load_state_dict(torch.load(get_resource_abs_path('splatfont_digits_model.pt')))
     model.eval()
 
     results = [(0,0)] * 8
@@ -284,7 +240,8 @@ def parse_results_screen(img):
 
     return UnassocMatchResults(get_winner(img), [Result(x[2], x[0][0], x[0][1], x[1]) for x in zip(stats, specs, weaps)])
 
-def is_results_screen(img):
+
+def is_results_screen_720p(img):
     base_x = 35
     base_y = 5
     width = 170
@@ -314,7 +271,44 @@ def is_results_screen(img):
     return True
 
 
-def results_data_to_json(res):
-    jsondata = {'eventSource': 'CV', 'timestamp': time.time(), 'eventType': 'results', 'winner': res.winner, \
-        'eventData': {'players':[{'weapon': res.data[i].weapon, 'ka_count': res.data[i].ka_count, 'special': res.data[i].special, 'special_count': res.data[i].special_count} for i in range(8)]}}
+def is_results_screen_1080p(img):
+    base_x = 35
+    base_y = 5
+    width = 250
+    height = 30
+
+    min_ok_color = 20
+    max_ok_color = 40
+
+    arr = img[base_y:base_y+height,base_x:base_x+width]
+    min_col = np.amin(arr)
+    max_col = np.amax(arr)
+
+    if max_col > max_ok_color or min_col < min_ok_color:
+        return False
+
+    base_x = 35
+    base_y = 135
+    width = 200
+    height = 30
+
+    arr = img[base_y:base_y+height,base_x:base_x+width]
+    min_col = np.amin(arr)
+    max_col = np.amax(arr)
+
+    if max_col > max_ok_color or min_col < min_ok_color:
+        return False   
+    return True
+
+
+def results_data_to_json(res, game_mode=None, stage_name=None, ts=time.time()):
+    if res.winner == 'alpha':
+        alpha = [{'weapon': res.data[i].weapon, 'ka_count': res.data[i].ka_count, 'special': res.data[i].special, 'special_count': res.data[i].special_count} for i in range(4)]
+        bravo = [{'weapon': res.data[i+4].weapon, 'ka_count': res.data[i+4].ka_count, 'special': res.data[i+4].special, 'special_count': res.data[i+4].special_count} for i in range(4)]
+    else:
+        bravo = [{'weapon': res.data[i].weapon, 'ka_count': res.data[i].ka_count, 'special': res.data[i].special, 'special_count': res.data[i].special_count} for i in range(4)]
+        alpha = [{'weapon': res.data[i+4].weapon, 'ka_count': res.data[i+4].ka_count, 'special': res.data[i+4].special, 'special_count': res.data[i+4].special_count} for i in range(4)]
+    
+    jsondata = {'eventSource': 'CV', 'timestamp': ts, 'eventType': 'results', \
+        'eventData': {'gameMode': game_mode, 'stage': stage_name, 'winner': res.winner, 'alphaTeam': alpha, 'bravoTeam': bravo}}
     return json.dumps(jsondata, indent=4)

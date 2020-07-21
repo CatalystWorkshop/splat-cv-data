@@ -12,54 +12,19 @@ from functools import partial
 import time
 import random
 from datetime import datetime
-
-class Spritesheet:
-    def __init__(self, sheet, num_sprites, num_cols, sprite_width, sprite_names):
-        self.sheet = sheet
-        self.num_sprites = num_sprites
-        self.num_cols = num_cols
-        self.sprite_width = sprite_width
-        self.sprite_names = sprite_names
-        self.cached_sprites = {}
-
-    def get_sprite(self, idx):
-        if idx < 0 or idx > self.num_sprites:
-            print("error, invalid sprite number")
-            return ("", [])
-        if idx not in self.cached_sprites.keys():
-            x = self.sprite_width * (idx % self.num_cols)
-            y = self.sprite_width * int(idx / self.num_cols)
-            self.cached_sprites[idx] = (self.sprite_names[idx], self.sheet[y:y+self.sprite_width, x:x+self.sprite_width])
-        return self.cached_sprites[idx]
+from scripts.sprite_parsing import Spritesheet, find_most_similar
+from scripts.utils import get_resource_abs_path
 
 
-ability_image = '../sprites-models/abilities_horiz_64px.png'
-with open('../sprites-models/abilities_list.csv', 'r') as file:
+ability_image = get_resource_abs_path('abilities_horiz_64px.png')
+with open(get_resource_abs_path('abilities_list.csv'), 'r') as file:
     abilities_list = file.read().split('\n')
-weapon_image = '../sprites-models/weapon_compact_12col_128px.png'
-with open('../sprites-models/weapons_list.csv', 'r') as file:
+weapon_image = get_resource_abs_path('weapon_compact_12col_128px.png')
+with open(get_resource_abs_path('weapons_list.csv'), 'r') as file:
     weapons_list = [line.split(',')[0] for line in file.read().split('\n')]
 
-abil_spritesheet = Spritesheet(sheet=rgb2gray(rgba2rgb(io.imread(ability_image))), num_sprites=26, num_cols=26, sprite_width=64, sprite_names=abilities_list)
-weap_spritesheet = Spritesheet(sheet=rgb2gray(rgba2rgb(io.imread(weapon_image))), num_sprites=139, num_cols=12, sprite_width=128, sprite_names=weapons_list)
-
-
-# Takes in an RGB image
-def find_most_similar(in_img, spritesheet, exclude_list=[]):
-    max_score = 0
-    max_img = ''
-    for idx in range(spritesheet.num_sprites):
-        (sprite_name, sprite) = spritesheet.get_sprite(idx)
-        if sprite_name in exclude_list:
-            continue
-        ref_img = resize(sprite, (in_img.shape[0], in_img.shape[1]))
-
-        ssim_val = ssim(ref_img, in_img, data_range=in_img.max() - in_img.min())
-
-        if ssim_val > max_score:
-            max_score = ssim_val
-            max_img = sprite_name
-    return (max_img, round(max_score, 5))
+abil_spritesheet = Spritesheet(sheet=rgb2gray(rgba2rgb(io.imread(ability_image))), num_sprites=26, num_cols=26, sprite_width=64, sprite_height=64, sprite_names=abilities_list)
+weap_spritesheet = Spritesheet(sheet=rgb2gray(rgba2rgb(io.imread(weapon_image))), num_sprites=139, num_cols=12, sprite_width=128, sprite_height=64, sprite_names=weapons_list)
 
 
 def detect_weapons_from_map_view(i, top_left_x_alpha, top_left_x_bravo, top_left_y_base, y_spacing, side, img):
@@ -114,6 +79,7 @@ def get_player_data_from_map_view(img):
 
     return list(zip([x[0] for x in weaps], [(x[0][0], x[1][0], x[2][0]) for x in abils])), list(zip([x[1] for x in weaps], [(x[0][1], x[1][1], x[2][1]) for x in abils]))
 
+
 def is_map_screen(img):
     base_x_alpha = 58
     base_x_bravo = 1006
@@ -158,10 +124,12 @@ def is_map_screen(img):
 
     return True
 
+
 # For best results, takes a 1280 x 720 img.
 # Takes in a skimage (np array)
 def parse_map_screen(img):
-    results, scores = get_player_data_from_map_view(img)
+    resized_img = cv2.resize(img, dsize=(1280, 720), interpolation=cv2.INTER_CUBIC)
+    results, scores = get_player_data_from_map_view(resized_img)
     weap_thresh = 0.25
     abil_thresh = 0.25
     unsure_weap = [idx + 1 for idx, score in enumerate(scores) if score[0] < weap_thresh]
