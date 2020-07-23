@@ -12,20 +12,16 @@ class VideoStreamWidget(object):
             self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, 1280);
             self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 720);
         # Start the thread to read frames from the video stream
-        self.thread = threading.Thread(target=self.update, args=())
-        self.thread.daemon = True
         self.frame = None
         self.status = True
-        self.thread.start()
         self.now = time.time()
+        self.update()
 
     def update(self):
         # Read the next frame from the stream in a different thread
-        while True:
-            if self.capture.isOpened():
-                (self.status, self.frame) = self.capture.read()
-                self.now = time.time()
-            time.sleep(.01)
+        if self.capture.isOpened():
+            (self.status, self.frame) = self.capture.read()
+            self.now = time.time()
+
     def finish(self):
         self.capture.release()
-        self.thread.join()

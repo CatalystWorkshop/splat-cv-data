@@ -209,7 +209,6 @@ def get_winner(img):
 #Returns data in format: ('alpha/bravo',[(weap, ka_cnt, spec_cnt, spec)])
 def parse_results_screen(img):
     if img.size[0] != 1280 or img.size[1] != 720:
-        print('resizing image')
         img = img.resize((1280, 720))
     stats, stat_scores = detect_stats_from_results_view(img)
     specs, spec_scores = detect_specials_from_results_view(np.array(img))
@@ -298,6 +297,18 @@ def is_results_screen_1080p(img):
 
     if max_col > max_ok_color or min_col < min_ok_color:
         return False   
+
+    base_x = 168
+    base_y = 58
+    width = 3
+    height = 25
+    min_ok_white_col = 240
+    arr = img[base_y:base_y+height,base_x:base_x+width]
+    min_col = np.amin(arr)
+    
+    if min_col < min_ok_white_col:
+        return False
+
     return True
 
 
