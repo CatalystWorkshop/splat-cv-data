@@ -5,3 +5,4 @@ ocr-data/scripts/__pycache__/
 *.pyc
 ocr-data/scripts/single_result.txt
 .vscode/*
+*/__pycache__/
