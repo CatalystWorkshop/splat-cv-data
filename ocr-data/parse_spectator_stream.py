@@ -9,14 +9,13 @@ import numpy as np
 import cv2
 import sys
 from datetime import datetime
-from scripts.sprite_parsing import Spritesheet, find_most_similar
-from scripts.video_stream_helper import VideoStreamWidget
-from scripts.objective_parsing import ObjectiveTimer
-from scripts.timer_parsing import parse_timer_digits
-from scripts.mode_parsing import parse_mode
-from scripts.lobby_stage_parsing import parse_stage
-from scripts.parse_results_screen import is_results_screen_1080p, parse_results_screen, get_winner, results_data_to_json
-from scripts.event_logging import log_event, save_image
+from scripts.utils.video_stream_helper import VideoStreamWidget
+from scripts.midgame_parsing.ui_parsing import UIGameStateManager
+from scripts.midgame_parsing.timer_parsing import parse_timer_digits
+from scripts.pregame_parsing.mode_parsing import parse_mode
+from scripts.pregame_parsing.lobby_stage_parsing import parse_stage
+from scripts.postgame_parsing.parse_results_screen import is_results_screen_1080p, parse_results_screen, get_winner, results_data_to_json
+from scripts.utils.event_logging import log_event, save_image
 import functools
 print = functools.partial(print, flush=True)
 
@@ -30,23 +29,32 @@ def parse_overhead_spectator_stream(src):
     last_lobby_map_read_ts = time.time()
     score_wait_start_ts = None
     results_wait_start_ts = None
-    objective_timer = ObjectiveTimer()
+    ui_state_mgr = UIGameStateManager()
     curr_time_left = "5:00"
     curr_game_mode = None
     curr_stage = None
+    game_start_time = None
     game_end_time = None
+    tick_count = 0
     while stream.status:
+        if cv2.waitKey(1) == 27: 
+            break  # esc to quit
         img = stream.frame
         now_ts = stream.now
-        
-        objective_timer.update(img, now_ts - old_ts)
-        if objective_timer.is_game_start():
+        tick_count += 1
+        ui_state_mgr.update(img, now_ts - old_ts)
+        if ui_state_mgr.is_game_start():
+            game_start_time = now_ts
+            tick_count = 0
             print("Game Start!")
-        elif objective_timer.is_game_end():
+        elif ui_state_mgr.is_game_end():
+            game_end_time = now_ts
             print("Game End!")
+            print(round(tick_count / (game_end_time - game_start_time), 3))
             score_wait_start_ts = now_ts
+            tick_count = 0
             game_end_time = datetime.now()
-        if objective_timer.is_objective_control_change():
+        if ui_state_mgr.is_objective_control_change():
             print("Objective Control Change!")
 
         if now_ts - last_timer_update_ts >= 0.3:
@@ -55,7 +63,7 @@ def parse_overhead_spectator_stream(src):
                 last_timer_update_ts = now_ts
                 curr_time_left = new_time_left
 
-        if  not objective_timer.in_game \
+        if  not ui_state_mgr.in_game \
             and not curr_game_mode \
                 and now_ts - last_mode_read_ts >= 2.5:
             last_mode_read_ts = now_ts
@@ -64,7 +72,7 @@ def parse_overhead_spectator_stream(src):
                 curr_game_mode = new_game_mode
                 print(f"Mode: {curr_game_mode}")
 
-        if not objective_timer.in_game \
+        if not ui_state_mgr.in_game \
             and not curr_stage \
                 and now_ts - last_lobby_map_read_ts >= 2:
             last_lobby_map_read_ts = now_ts
@@ -73,14 +81,15 @@ def parse_overhead_spectator_stream(src):
                 curr_stage = new_stage  
                 print(f"Map: {curr_stage}")
 
-        if not objective_timer.in_game \
+        if not ui_state_mgr.in_game \
             and score_wait_start_ts \
             and now_ts - score_wait_start_ts >= 12:
             save_image(img, game_end_time, suffix='_score', np=True)
             score_wait_start_ts = None
 
         if not results_wait_start_ts \
-            and is_results_screen_1080p(img):
+            and is_results_screen_1080p(img) \
+            and game_end_time and now_ts - game_end_time.timestamp() < 20:
             print('Found results screen')
             results_wait_start_ts = now_ts
 
@@ -93,19 +102,20 @@ def parse_overhead_spectator_stream(src):
             log_event(results_data_to_json(res_data, \
                 game_mode=curr_game_mode, \
                 stage_name=curr_stage, \
-                longest_hold_alpha=objective_timer.prev_game_longest_hold_alpha, \
-                longest_hold_bravo=objective_timer.prev_game_longest_hold_bravo, \
-                objective_time=objective_timer.prev_game_objective_time, \
-                game_events=objective_timer.prev_game_event_queue), \
+                longest_hold_alpha=ui_state_mgr.prev_game_longest_hold_alpha, \
+                longest_hold_bravo=ui_state_mgr.prev_game_longest_hold_bravo, \
+                objective_time=ui_state_mgr.prev_game_objective_time, \
+                game_events=ui_state_mgr.prev_game_event_queue), \
                     game_end_time, suffix='_results')
             print('Logged results without map')
+            
             results_wait_start_ts = None
             curr_game_mode = None
             curr_stage = None   
-            time.sleep(10) 
+            time.sleep(20) 
 
         old_ts = now_ts
-        time.sleep(0.15)
+        stream.update()
 
     stream.finish()
 

@@ -12,8 +12,8 @@ from functools import partial
 import time
 import random
 from datetime import datetime
-from scripts.sprite_parsing import Spritesheet, find_most_similar
-from scripts.utils import get_resource_abs_path
+from scripts.utils.sprite_parsing import Spritesheet, find_most_similar
+from scripts.utils.path import get_resource_abs_path
 
 
 ability_image = get_resource_abs_path('abilities_horiz_64px.png')

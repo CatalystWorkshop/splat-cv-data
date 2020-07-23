@@ -12,8 +12,8 @@ from torchvision import transforms
 import time
 import cv2
 from collections import namedtuple
-from scripts.sprite_parsing import Spritesheet, find_most_similar
-from scripts.utils import get_resource_abs_path
+from scripts.utils.sprite_parsing import Spritesheet, find_most_similar
+from scripts.utils.path import get_resource_abs_path
 import json
 
 
@@ -298,8 +298,8 @@ def is_results_screen_1080p(img):
     if max_col > max_ok_color or min_col < min_ok_color:
         return False   
 
-    base_x = 168
-    base_y = 58
+    base_x = 252
+    base_y = 90
     width = 3
     height = 25
     min_ok_white_col = 240

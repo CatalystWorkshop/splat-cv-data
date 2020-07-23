@@ -2,7 +2,7 @@ import numpy as np
 import functools
 import time
 print = functools.partial(print, flush=True)
-from scripts.player_alive_parsing import get_player_alive_state
+from scripts.midgame_parsing.player_alive_parsing import get_player_alive_state
 
 class UISpacingConfig:
     def __init__(self, alpha_base_x, bravo_base_x, alpha_y1, alpha_y2, bravo_y1, bravo_y2, alpha_spacing, bravo_spacing, alpha_width, bravo_width):

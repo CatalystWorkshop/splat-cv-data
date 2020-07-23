@@ -1,6 +1,5 @@
 import cv2
 import sys
-from scripts.utils import print
 
 def show_webcam(src):
     cam = cv2.VideoCapture(src)
