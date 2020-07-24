@@ -23,7 +23,7 @@ python ocr-data/show_webcam.py 0
 
 4. In the OBS header bar, go to Tools -> VirtualCam
 
-5. A window should pop up with a **Target Camera** in addition to a **Start** and **Stop** button. Your *Target Camera* should look like 'OBS-Camera' if VirtualCam was installed correctly. Hit **Start** to begin redirecting your OBS video to a virtual camera.
+5. A window should pop up with a **Target Camera** in addition to a **Start** and **Stop** button. Your *Target Camera* should look like 'OBS-Camera' if VirtualCam was installed correctly. Hit **Start** to begin redirecting your OBS video to a virtual camera. When you are done using the spectator cam parser, hit **Stop**
 
 6. Rerun the same command, but with a different input camera. If a window pops up showing your OBS video, you have found the correct index for your virtual camera. Again, press escape to exit. 
 
