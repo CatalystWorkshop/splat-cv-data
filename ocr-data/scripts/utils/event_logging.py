@@ -4,8 +4,6 @@ except ImportError:
     import Image
 import os
 import websockets
-import asyncio
-import datetime
 import cv2
 
 async def send_to_socket(json_dump):

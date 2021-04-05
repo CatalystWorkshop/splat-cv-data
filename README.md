@@ -6,9 +6,8 @@
 4. Install [Python 3.6+](https://www.python.org/downloads/)
 5. Head into the project root directory and run the following command.
 ```
-bash ocr-data/install-dependencies.sh
+pip install -r requirements.txt
 ```
-6. If you do not have bash installed, you can manually run the commands within the file.
 
 ## Setup
 This program uses CV2 VideoCapture. Your computer's webcams and virtual cameras are accessed using an index. If you have a built-in webcam, it is typically index **0**. In general, the index of your first installed virtual camera is **1**, but this may differ between systems. Follow the below instructions to configure your virtual camera.
@@ -35,7 +34,7 @@ python ocr-data/show_webcam.py 1
 
 8. After finding your virtual cam index, you can finally set up your spectator cam parser.
 
-9. Set up your overhead spectator camera in Splatoon 2. For best results, disable screen burn-in reduction (the screen dimming after 5 minutes) and all notifications in system settings. Don't move the camera or change perspectives while parsing.
+9. Set up your overhead spectator camera in Splatoon 2. For best results, disable screen burn-in reduction (the screen dimming after 5 minutes) and all notifications in Switch system settings. Don't move the camera or change perspectives while parsing.
 
 10. Run the following command with the virtual cam index found earlier to start up the spectator cam parser. 
 
@@ -47,4 +46,6 @@ python ocr-data/parse_spectator_stream.py ${index}
 
 12. Results will be output in the project root directory under the **/events/** folder.
 
-13. Happy Splatting!
+13. Use Ctrl + C to exit the program.
+
+14. Happy Splatting!

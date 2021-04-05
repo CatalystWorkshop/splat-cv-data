@@ -1,5 +1,5 @@
 import cv2
-from skimage import data, img_as_float, io
+from skimage import io
 from skimage.color import rgba2rgb, rgb2gray
 from scripts.utils.sprite_parsing import Spritesheet, find_most_similar
 from scripts.utils.path import get_resource_abs_path

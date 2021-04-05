@@ -2,7 +2,6 @@ try:
     from PIL import Image
 except ImportError:
     import Image
-import matplotlib.pyplot as plt
 import PIL.ImageOps
 import cv2
 import numpy
@@ -13,8 +12,8 @@ import torchvision
 from torchvision import transforms
 import os, os.path
 from time import time
-from torch.utils.data import Dataset, DataLoader
-from torchvision import datasets, transforms
+from torch.utils.data import Dataset
+from torchvision import transforms
 
 def predict_digit(img, model):
     img = img.view(1, 1944)

@@ -1,9 +1,5 @@
-import numpy as np
-from skimage import io
 from skimage.metrics import structural_similarity as ssim
 from skimage.transform import resize
-from skimage.color import rgba2rgb, rgb2gray
-import os
 
 
 class Spritesheet:

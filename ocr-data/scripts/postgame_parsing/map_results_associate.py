@@ -1,18 +1,8 @@
-from parse_map_screen import parse_map_screen
-from parse_results_screen import parse_results_screen
 import json
-try:
-    from PIL import Image, ImageTk
-except ImportError:
-    import Image
-import skimage
 import io
 import time
 import base64
-import asyncio
-import websockets
 from collections import namedtuple
-from datetime import datetime
 
 PossibleResultsList = namedtuple('PossibleResultsList', 'winner data')
 PossibleResults = namedtuple('PossibleResults', 'weapon special abilities possibleStats')

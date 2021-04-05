@@ -1,11 +1,4 @@
-try:
-    from PIL import Image
-except ImportError:
-    import Image
-import cv2
 import numpy as np
-from skimage import io
-from skimage.color import rgba2rgb, rgb2gray
 
 # Dead squids have only 3 colors. 0s, 95s, and 200s. 
 # May be some intermediate grey artifacts - checks if certain proportion match these colors
